@@ -14,3 +14,14 @@ start_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True,
 
 )
+
+cancel_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="Отменить"),
+        ],
+    ],
+    one_time_keyboard=True,
+    resize_keyboard=True,
+
+)

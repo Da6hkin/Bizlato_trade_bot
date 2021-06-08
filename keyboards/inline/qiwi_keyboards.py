@@ -23,3 +23,4 @@ qiwi_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
     ]
 ])
+

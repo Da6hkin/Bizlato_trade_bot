@@ -1,12 +1,16 @@
+from typing import Union
+
 from aiogram.dispatcher.filters import Text
 from aiogram.types import CallbackQuery
 
 from keyboards.inline import qiwi_keyboard
+from keyboards.inline.bizlato_keyboards import bizlato_accs_keyboard
 from keyboards.inline.callback_datas import set_callback
-from loader import dp, bot
+from loader import dp, bot, db
 from aiogram import types
 
 from states import AddWallet
+from states.bizlato_states import AddAcc
 
 
 @dp.message_handler(Text(equals="Настройки Qiwi"))
@@ -18,14 +22,20 @@ async def bot_qiwi_menu(message: types.Message):
 async def qiwi_setups(call: CallbackQuery, callback_data: dict):
     await call.answer(cache_time=30)
     action = callback_data.get("action")
+    user_id = call.from_user.id
     if action == "add_wallet":
-        await call.message.answer(text="Введите данные Qiwi Кошелька\n"
-                                       "<b>Формат</b> <code>&lt;personId&gt;:&lt;API_KEY&gt;</code> \n"
-                                       "<i>personId - номер вашего кошелька без знака '+'\n"
-                                       "API_KEY - OAuth-токен выданный вам для доступа к вашему QIWI кошельку.</i>")
-        await AddWallet.InputWallet.set()
+        check_for_accs = await db.show_bizlato_accs(user_id)
+        if len(check_for_accs) == 0:
+            markup = await bizlato_accs_keyboard(check_for_accs)
+            await call.message.answer(text="Сперва нужно создать аккаунт Bitzlato", reply_markup=markup)
+            await AddAcc.ButtonAdd.set()
+        else:
+            markup = await bizlato_accs_keyboard(check_for_accs)
+            await call.message.answer(text="Выберите аккаунт Bitzlato", reply_markup=markup)
+            await AddWallet.InputBizlatoAcc.set()
     # await call.message.answer(f"Вы выбрали qiwi.{action}")
 
+# async def list_bitzlato_accounts(message: Union[types.Message, types.CallbackQuery], **kwargs):
 
 # add_wallet
 # set_limit

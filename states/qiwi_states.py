@@ -1,8 +1,9 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 
-class AddWallet(StatesGroup):
+class QiwiSettings(StatesGroup):
     InputBizlatoAcc = State()
-    InputWallet = State()
+    InputOption = State()
+    AddWallet = State()
 
 

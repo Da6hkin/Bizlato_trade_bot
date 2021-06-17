@@ -1,1 +1,1 @@
-from . import start, qiwi, bizlato, qiwi_add_wallet,bizlato_add_acc
+from . import start, qiwi_add_wallet, bizlato, qiwi_wallet_settings, bizlato_add_acc

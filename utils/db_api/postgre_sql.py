@@ -69,6 +69,7 @@ class Database:
         sql = "UPDATE Accounts SET qiwi_wallets = ARRAY [$2] WHERE bizlato_acc=$1"
         return await self.execute(sql, bizlato_acc, qiwi_wallets, execute=True)
 
+
     async def create_bizlato_acc(self, user_id, bizlato_acc):
         sql = "INSERT INTO Accounts (user_id,bizlato_acc) VALUES ($1,$2)"
         return await self.execute(sql, user_id, bizlato_acc, execute=True)

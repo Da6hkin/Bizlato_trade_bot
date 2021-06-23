@@ -23,6 +23,7 @@ async def bizlato_accs_keyboard(list_bizlato):
                                  callback_data=set_callback.new(service_name="bizlato",
                                                                 action="add_acc"))
         )
+        markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     else:
         for bizlato_acc in list_bizlato:
             button_text = bizlato_acc[0]
@@ -30,4 +31,5 @@ async def bizlato_accs_keyboard(list_bizlato):
             markup.insert(
                 InlineKeyboardButton(text=button_text, callback_data=callback)
             )
+            markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     return markup

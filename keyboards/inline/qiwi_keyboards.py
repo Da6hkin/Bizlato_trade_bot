@@ -33,8 +33,29 @@ qiwi_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     ],
 ])
 
-back_keyboard = InlineKeyboardMarkup(inline_keyboard= [
+back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Назад", callback_data="back")
     ]
 ])
+
+
+async def qiwi_wallets_keyboard(list_qiwi):
+    markup = InlineKeyboardMarkup()
+    print("list_qiwi-",list_qiwi)
+    if list_qiwi[0] is None:
+        markup.insert(
+            InlineKeyboardButton(text="Добавить кошелек",
+                                 callback_data=set_callback.new(service_name="qiwi",
+                                                                action="add_wallet"))
+        )
+        markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
+    else:
+        for qiwi_wallet in list_qiwi[0]:
+            button_text = qiwi_wallet
+            callback = qiwi_wallet
+            markup.insert(
+                InlineKeyboardButton(text=button_text, callback_data=callback)
+            )
+        markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
+    return markup

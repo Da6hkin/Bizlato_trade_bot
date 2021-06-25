@@ -22,7 +22,7 @@ async def delete_wallet(message: types.CallbackQuery, state=FSMContext):
         await message.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
         await QiwiSettings.InputOption.set()
     elif call_data in wallets[0]:
-
+        await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
         await db.delete_qiwi_wallet(api_key, call_data)
         await message.message.answer(text="<i>Кошелек был успешно удален</i>", reply_markup=start_keyboard)
         print(await db.select_all_account())

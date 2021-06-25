@@ -4,7 +4,7 @@ import requests
 from aiogram.dispatcher import FSMContext
 from keyboards.default import cancel_keyboard, start_keyboard
 from keyboards.inline import qiwi_keyboard, bizlato_keyboard, back_keyboard, set_callback, bizlato_accs_keyboard, \
-    qiwi_wallets_keyboard
+    qiwi_wallets_keyboard, useless_wallets_keyboard
 
 from loader import dp, bot, db
 from aiogram import types
@@ -75,12 +75,12 @@ async def choose_qiwi_option(call: Union[types.CallbackQuery, types.Message], st
                                                "API_KEY - OAuth-токен выданный вам для доступа к вашему QIWI кошельку.</i>",
                                           reply_markup=back_keyboard)
                 await QiwiSettings.AddWallet.set()
-            if action == "delete_wallet":
+            elif action == "delete_wallet":
                 await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
                 check_for_qiwi = await db.show_wallets(api_key)
                 print(check_for_qiwi)
                 markup = await qiwi_wallets_keyboard(check_for_qiwi)
-                if check_for_qiwi[0] is None:
+                if check_for_qiwi[0] is None or len(check_for_qiwi[0]) == 0:
                     await call.message.answer(text="<i>Обрабатывается запрос...</i>", reply_markup=cancel_keyboard)
                     await call.message.answer(text="<b>Сперва нужно создать Qiwi кошелек</b>")
                     await call.message.answer(text="Введите данные Qiwi Кошелька\n"
@@ -94,12 +94,12 @@ async def choose_qiwi_option(call: Union[types.CallbackQuery, types.Message], st
                     await call.message.answer(text="<b>Выберите кошелек который хотите удалить</b>",
                                               reply_markup=markup)
                     await QiwiSettings.DeleteWallet.set()
-            if action == "show_wallets":
+            elif action == "show_wallets":
                 await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
                 check_for_qiwi = await db.show_wallets(api_key)
                 print(check_for_qiwi)
                 markup = await qiwi_wallets_keyboard(check_for_qiwi)
-                if check_for_qiwi[0] is None:
+                if check_for_qiwi[0] is None or len(check_for_qiwi[0]) == 0:
                     await call.message.answer(text="<i>Обрабатывается запрос...</i>", reply_markup=cancel_keyboard)
                     await call.message.answer(text="<b>Сперва нужно создать Qiwi кошелек</b>")
                     await call.message.answer(text="Введите данные Qiwi Кошелька\n"
@@ -118,12 +118,11 @@ async def choose_qiwi_option(call: Union[types.CallbackQuery, types.Message], st
                     await call.message.answer(text=return_string,
                                               reply_markup=back_keyboard)
                     await QiwiSettings.ShowWallets.set()
-            if action == "set_limit":
+            elif action == "set_limit":
                 await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
                 check_for_qiwi = await db.show_wallets(api_key)
                 print(check_for_qiwi)
-                markup = await qiwi_wallets_keyboard(check_for_qiwi)
-                if check_for_qiwi[0] is None:
+                if check_for_qiwi[0] is None or len(check_for_qiwi[0]) == 0:
                     await call.message.answer(text="<i>Обрабатывается запрос...</i>", reply_markup=cancel_keyboard)
                     await call.message.answer(text="<b>Сперва нужно создать Qiwi кошелек</b>")
                     await call.message.answer(text="Введите данные Qiwi Кошелька\n"
@@ -137,8 +136,40 @@ async def choose_qiwi_option(call: Union[types.CallbackQuery, types.Message], st
                     await call.message.answer(text="Укажите <b>лимит</b> в формате числа более единицы:",
                                               reply_markup=back_keyboard)
                     await QiwiSettings.InputLimit.set()
-
-
+            elif action == "useless_wallets":
+                await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+                check_for_qiwi = await db.show_wallets(api_key)
+                if check_for_qiwi[0] is None or len(check_for_qiwi[0]) == 0:
+                    await call.message.answer(text="<i>Обрабатывается запрос...</i>", reply_markup=cancel_keyboard)
+                    await call.message.answer(text="<b>Сперва нужно создать Qiwi кошелек</b>")
+                    await call.message.answer(text="Введите данные Qiwi Кошелька\n"
+                                                   "<b>Формат</b> <code>&lt;personId&gt;:&lt;API_KEY&gt;</code> \n"
+                                                   "<i>personId - номер вашего кошелька без знака '+'\n"
+                                                   "API_KEY - OAuth-токен выданный вам для доступа к вашему QIWI кошельку.</i>",
+                                              reply_markup=back_keyboard)
+                    await QiwiSettings.AddWallet.set()
+                else:
+                    useless_wallets = ""
+                    wallets_list = []
+                    for wallet in check_for_qiwi[0]:
+                        wallet_data = wallet.split(':')
+                        if wallet_data[2] == "1":
+                            useless_wallets += wallet_data[0] + "\n"
+                            wallets_list.append(wallet)
+                    if len(useless_wallets) == 0:
+                        await call.message.answer(text="<b>Ненужных кошельков нет!</b>")
+                        await call.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
+                        await QiwiSettings.InputOption.set()
+                    else:
+                        await state.update_data(
+                            {
+                                "useless_wallets": wallets_list
+                            }
+                        )
+                        await call.message.answer(text="<i>Обрабатывается запрос...</i>", reply_markup=cancel_keyboard)
+                        await call.message.answer(text="Вы уверены что хотите удалить кошельки:\n" + useless_wallets,
+                                                  reply_markup=useless_wallets_keyboard)
+                        await QiwiSettings.DeleteUseless.set()
         else:
             await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
             await QiwiSettings.InputOption.set()

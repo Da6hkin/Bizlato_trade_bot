@@ -8,6 +8,7 @@ class QiwiSettings(StatesGroup):
     DeleteWallet = State()
     ShowWallets = State()
     InputLimit = State()
-    SaveLimit = State()
+    DeleteUseless = State()
+
 
 

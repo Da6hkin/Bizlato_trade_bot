@@ -39,6 +39,15 @@ back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     ]
 ])
 
+useless_wallets_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text="Удалить", callback_data="delete_useless")
+    ],
+    [
+        InlineKeyboardButton(text="Назад", callback_data="back")
+    ],
+])
+
 
 async def qiwi_wallets_keyboard(list_qiwi):
     markup = InlineKeyboardMarkup()

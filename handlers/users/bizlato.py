@@ -23,9 +23,6 @@ async def qiwi_setups(call: CallbackQuery, callback_data: dict):
     if action == "add_acc":
         await bot.edit_message_reply_markup(chat_id=call.from_user.id, message_id=call.message.message_id,
                                             reply_markup=None)
-        await call.message.answer(text="Введите данные Bitzlato Кошелька\n"
-                                       "<b>Формат</b> <code>&lt;personId&gt;:&lt;API_KEY&gt;</code> \n"
-                                       "<i>personId - номер вашего кошелька без знака '+'\n"
-                                       "API_KEY - OAuth-токен выданный вам для доступа к вашему QIWI кошельку.</i>",
+        await call.message.answer(text="<b>Введите email Bitzlato аккаунта:</b>",
                                   reply_markup=back_keyboard)
-        await AddAcc.InputAcc.set()
+        await AddAcc.InputEmail.set()

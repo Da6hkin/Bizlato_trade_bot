@@ -26,10 +26,15 @@ async def bizlato_accs_keyboard(list_bizlato):
         markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     else:
         for bizlato_acc in list_bizlato:
-            button_text = bizlato_acc[0]
+            print(bizlato_acc)
+            bitzlato_data = bizlato_acc[0].split("|")
+            print("bitzlato_data=", bitzlato_data)
+            button_text = bitzlato_data[0]
+            print("bitzlato_data[0]=", button_text)
             callback = bizlato_acc[0]
+            print("bizlato_acc[0]=", callback)
             markup.insert(
-                InlineKeyboardButton(text=button_text, callback_data=callback)
+                InlineKeyboardButton(text=button_text, callback_data=button_text)
             )
-            markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
+        markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     return markup

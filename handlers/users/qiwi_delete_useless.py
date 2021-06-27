@@ -28,9 +28,6 @@ async def delete_wallet(message: types.CallbackQuery, state=FSMContext):
                 "user_id": message.from_user.id
             }
         )
-        sup_data = await state.get_data()
-        print(sup_data)
-        await QiwiSettings.InputOption.set()
         await message.message.answer(text="Кошельки были удалены", reply_markup=start_keyboard)
         await message.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
         await QiwiSettings.InputOption.set()

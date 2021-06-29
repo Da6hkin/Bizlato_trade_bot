@@ -36,23 +36,10 @@ async def select_bitzlato_acc(call: types.CallbackQuery, state=FSMContext):
     callback_data = call.data
     print(have_acc)
     print(callback_data)
-    await call.answer()
-    if len(callback_data.split(":")) == 2:
-        await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        api_key = call.data
-        acc_info = api_key.split("|")
-        await state.update_data(
-            {
-
-                "api_key": api_key,
-                "user_id": call.from_user.id
-            }
-        )
-        await call.message.answer(text=f"Вы работаете с аккаунтом <b>{acc_info[0]}</b>", reply_markup=start_keyboard)
-        await call.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
-        await QiwiSettings.InputOption.set()
-    elif callback_data == "back" and have_acc:
+    api_keys = await db.show_bizlato_keys(callback_data)
+    if callback_data == "back" and have_acc:
         bitzlato_acc = check_bizlato.get("api_key")
+        email = await db.show_email(bitzlato_acc)
         await state.reset_data()
 
         await state.update_data(
@@ -64,7 +51,7 @@ async def select_bitzlato_acc(call: types.CallbackQuery, state=FSMContext):
         new_data = await state.get_data()
         print("Change Acc Back", new_data)
         await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
-        await call.message.answer(text=f"Вы работаете с аккаунтом <b>{bitzlato_acc}</b>", reply_markup=start_keyboard)
+        await call.message.answer(text=f"Вы работаете с аккаунтом <b>{email[0]}</b>", reply_markup=start_keyboard)
         await call.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
         await QiwiSettings.InputOption.set()
 
@@ -72,6 +59,20 @@ async def select_bitzlato_acc(call: types.CallbackQuery, state=FSMContext):
         await state.finish()
         await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await call.message.answer(text="Вы вернулись назад", reply_markup=start_keyboard)
+    elif len(api_keys[0]) > 0:
+        await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
+        acc_email = call.data
+        acc_api = await db.show_bizlato_keys(acc_email)
+        await state.update_data(
+            {
+
+                "api_key": acc_api[0][0],
+                "user_id": call.from_user.id
+            }
+        )
+        await call.message.answer(text=f"Вы работаете с аккаунтом <b>{acc_email}</b>", reply_markup=start_keyboard)
+        await call.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
+        await QiwiSettings.InputOption.set()
     else:
         await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
         await QiwiSettings.InputBizlatoAcc.set()
@@ -198,13 +199,17 @@ async def choose_qiwi_option(call: Union[types.CallbackQuery, types.Message], st
                 await bot.delete_message(chat_id=call.from_user.id, message_id=call.message.message_id)
                 print("change_acc")
                 check_for_bitzlato = await db.show_bizlato_accs(user_id)
+                print("check",check_for_bitzlato)
                 if len(check_for_bitzlato) < 2:
                     await call.message.answer(text="<b>Необходимо создать еще один аккаунт</b>")
                     await call.message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
                     await QiwiSettings.InputOption.set()
                 else:
                     for item in check_for_bitzlato:
-                        if item[0] == api_key:
+                        bitz_api_key = await db.show_bizlato_keys(item[0])
+
+                        if bitz_api_key[0][0] == api_key:
+                            print(1)
                             check_for_bitzlato.remove(item)
                     await state.update_data(
                         {

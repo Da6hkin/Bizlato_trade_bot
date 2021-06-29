@@ -61,7 +61,8 @@ async def qiwi_wallets_keyboard(list_qiwi):
         markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     else:
         for qiwi_wallet in list_qiwi[0]:
-            button_text = qiwi_wallet
+            qiwi_number = qiwi_wallet.split(":")
+            button_text = qiwi_number[0]
             callback = qiwi_wallet
             markup.insert(
                 InlineKeyboardButton(text=button_text, callback_data=callback)

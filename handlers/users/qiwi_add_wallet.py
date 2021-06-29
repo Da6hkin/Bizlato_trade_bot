@@ -44,24 +44,39 @@ async def input_qiwi_wallet(message: Union[types.Message, types.CallbackQuery], 
         data = await state.get_data()
         api_key = data.get("api_key")
         answer = message.text
+
+        print("answer", answer)
         list_answers = answer.split(":")
         if len(list_answers) == 2:
             await message.answer(text="<i>Проверяем аккаунт...</i>")
-            accs = await db.check_qiwi_exists(answer)
+            wallet = answer + ":0:0"
+            accs = await db.check_qiwi_exists(wallet)
+
+            wallets = await db.show_wallets(api_key)
             if accs[0]:
                 await message.answer(text="Данный аккаунт уже зарегистрирован в базе\n"
                                           "Попробуйте еще раз...", reply_markup=back_keyboard)
                 await QiwiSettings.InputWallet.set()
             elif get_profile(list_answers[1]) == list_answers[0]:
-                answer += ":0:0"
-                await db.create_qiwi_wallet(
-                    bizlato_acc=api_key,
-                    qiwi_wallets=answer
-                )
-                await message.answer(text="<i>Аккаунт был успешно добавлен</i>", reply_markup=start_keyboard)
-                print(await db.select_all_account())
-                await message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
-                await QiwiSettings.InputOption.set()
+                if len(wallets[0]) > 0:
+                    await db.add_qiwi_wallet(
+                        bizlato_api_key=api_key,
+                        qiwi_wallets=wallet
+                    )
+                    await message.answer(text="<i>Аккаунт был успешно добавлен</i>", reply_markup=start_keyboard)
+                    print(await db.select_all_account())
+                    await message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
+                    await QiwiSettings.InputOption.set()
+                else:
+                    answer += ":0:0"
+                    await db.create_qiwi_wallet(
+                        bizlato_api_key=api_key,
+                        qiwi_wallets=answer
+                    )
+                    await message.answer(text="<i>Аккаунт был успешно добавлен</i>", reply_markup=start_keyboard)
+                    print(await db.select_all_account())
+                    await message.answer(text="<b>Настройки Qiwi</b>", reply_markup=qiwi_keyboard)
+                    await QiwiSettings.InputOption.set()
 
             else:
                 await message.answer(text="Проверьте правильность данных...\n"
@@ -71,7 +86,6 @@ async def input_qiwi_wallet(message: Union[types.Message, types.CallbackQuery], 
             await message.answer(text="Неправильные формат данных...\n"
                                       "Попробуйте еще раз", reply_markup=back_keyboard)
             await QiwiSettings.AddWallet.set()
-
 
 # async def list_bitzlato_accounts(message: Union[types.Message, types.CallbackQuery], **kwargs):
 

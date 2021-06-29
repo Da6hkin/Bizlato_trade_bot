@@ -40,7 +40,8 @@ def check_bitzlato(email, key):
         "Authorization": "Bearer " + token
     },
                         params={})
-    return resp.status_code
+
+    return {resp.status_code: token}
 
 
 @dp.callback_query_handler(state=AddAcc.ButtonAdd)
@@ -93,7 +94,8 @@ async def input_bizlato_acc(message: Union[types.Message, types.CallbackQuery], 
                                   "'crv':'P-256',\n"
                                   "'x':'EjDTE4kXWR1vOuWkFyZNgm_82ACJUzJVpMSowHFqxP0',\n"
                                   "'y':'jP3uNx4dhddy4hDJ3EJcQBnbqFB604ACY1TOAzzQ-rw',\n"
-                                  "'d':'0NeSRzoCcB HmHCIhZPvDPCn6vU25aOsfe5Fvk_VEP2E'}</code>", reply_markup=back_keyboard)
+                                  "'d':'0NeSRzoCcB HmHCIhZPvDPCn6vU25aOsfe5Fvk_VEP2E'}</code>",
+                             reply_markup=back_keyboard)
         await AddAcc.InputAcc.set()
     else:
         await AddAcc.InputEmail.set()
@@ -103,7 +105,6 @@ async def input_bizlato_acc(message: Union[types.Message, types.CallbackQuery], 
 @dp.message_handler(state=AddAcc.InputAcc)
 async def input_bizlato_acc(message: Union[types.Message, types.CallbackQuery], state=FSMContext):
     message_type = type(message)
-    data = await state.get_data()
     if message_type == types.CallbackQuery:
         if message.data == "back":
             await state.finish()
@@ -116,32 +117,30 @@ async def input_bizlato_acc(message: Union[types.Message, types.CallbackQuery], 
         email_data = await state.get_data()
         email = email_data.get("email")
         api_key = message.text
-        acc_data = email + "|" + api_key
-        accs = await db.check_bizlato_exists(acc_data)
-        if accs[0]:
-            await message.answer(text="Данный аккаунт уже зарегистрирован в базе\n"
-                                      "Попробуйте еще раз...\n"
-                                      "<b>Введите email Bitzlato аккаунта:<\b>", reply_markup=back_keyboard)
-            await AddAcc.InputEmail.set()
-        else:
-            try:
-                response = check_bitzlato(email, api_key)
-                response_string = str(response)
-                if response == 200:
+        try:
+            data = check_bitzlato(email, api_key)
+            if data[0] == 200:
+                accs = await db.check_bizlato_exists(data[1])
+                if accs[0]:
+                    await message.answer(text="Данный аккаунт уже зарегистрирован в базе\n"
+                                              "Попробуйте еще раз...\n"
+                                              "<b>Введите email Bitzlato аккаунта:<\b>", reply_markup=back_keyboard)
+                    await AddAcc.InputEmail.set()
+                else:
                     await db.create_bizlato_acc(
                         user_id=message.from_user.id,
-                        bizlato_acc=acc_data
+                        bizlato_email=email,
+                        bizlato_api_key=data[1]
                     )
                     await state.finish()
                     await message.answer(text="<i>Аккаунт Bitzlato был добавлен</i>", reply_markup=start_keyboard)
-
-                elif response_string in BITZLATO_LOGIN_EXCEPTIONS.keys():
-                    login_error = BITZLATO_LOGIN_EXCEPTIONS.get(response_string)
-                    await message.answer(text=login_error + "\n" + "Попробуйте еще раз\n"
-                                                                   "<b>Введите email Bitzlato аккаунта:</b>",
-                                         reply_markup=back_keyboard)
-                    await AddAcc.InputEmail.set()
-            except:
-                await message.answer(text="Что-то пошло не так, попробуйте еще раз..."
-                                          "<b>Введите email Bitzlato аккаунта:</b>", reply_markup=back_keyboard)
+            else:
+                login_error = BITZLATO_LOGIN_EXCEPTIONS.get(str(data[0]))
+                await message.answer(text=login_error + "\n" + "Попробуйте еще раз\n"
+                                                               "<b>Введите email Bitzlato аккаунта:</b>",
+                                     reply_markup=back_keyboard)
                 await AddAcc.InputEmail.set()
+        except:
+            await message.answer(text="Что-то пошло не так, попробуйте еще раз..."
+                                      "<b>Введите email Bitzlato аккаунта:</b>", reply_markup=back_keyboard)
+            await AddAcc.InputEmail.set()

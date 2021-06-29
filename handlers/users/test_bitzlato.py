@@ -9,8 +9,8 @@ from jose import jws
 from jose.constants import ALGORITHMS
 
 # secret user key
-key = {"kty": "EC", "alg": "ES256", "crv": "P-256", "x": "BZZNXLMnglY0RCVgcmmkQWivv30-c81Q6zvTUDps8UQ",
-       "y": "bZZU507c_I7D2g-vgRXwcvYLR1T2nzNR4g2W16ue_1A", "d": "owNbkrQ3AwQZIboQSd3_lzsIkrxf-bKMnxVHsEigJho"}
+key = {"kty": "EC", "alg": "ES256", "crv": "P-256", "x": "dWTemrvbTSZkCWap5lWVPjdKrdUBxrNGJlvY52L97A8",
+       "y": "TUy3E7CrPFQMy0ZI_ffpGJGwuWsdeChvRJEqs1c4TBA", "d": "Aji6FzaGjlqxSqAWIRzPKLFxQhZXekPkGbrQRgRiHyY"}
 
 dt = datetime.datetime.now()
 ts = time.mktime(dt.timetuple())
@@ -26,11 +26,11 @@ claims = {
 }
 print(claims)
 
-token = jws.sign(claims, key, headers={"kid": "1"}, algorithm=ALGORITHMS.ES256)
-print(token)
+
+token = "eyJhbGciOiJFUzI1NiIsImtpZCI6IjEiLCJ0eXAiOiJKV1QifQ.eyJlbWFpbCI6ImFubmFieWNoa292YTEyM0ByYW1ibGVyLnJ1IiwiYXVkIjoidXNyIiwiaWF0IjoxNjI0ODc1Mjc5LCJqdGkiOiIweDY3MzBiMDBkNDRjZGIyNjYifQ.rzEeBOprFgwwI5iHanZLloJUpllrj_mOLRk7mRj7-oklvKy4Sgtr87HgmwBVtpmbT8yNTILRCowNdvDXJ4Kvww"
 print(type(token))
 resp = requests.get('https://bitzlato.com/api/p2p/trade/', headers={
-            "Authorization": "Bearer " + token
-        },
-            params={})
-print(type(resp.status_code), resp.reason, resp.text)
+    "Authorization": "Bearer " + token
+},
+                    params={})
+print(resp.status_code, resp.reason, resp.text)

@@ -58,7 +58,7 @@ async def input_qiwi_wallet(message: Union[types.Message, types.CallbackQuery], 
                                           "Попробуйте еще раз...", reply_markup=back_keyboard)
                 await QiwiSettings.InputWallet.set()
             elif get_profile(list_answers[1]) == list_answers[0]:
-                if len(wallets[0]) > 0:
+                if wallets[0] is None or len(wallets[0]) > 0:
                     await db.add_qiwi_wallet(
                         bizlato_api_key=api_key,
                         qiwi_wallets=wallet

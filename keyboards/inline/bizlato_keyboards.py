@@ -11,6 +11,10 @@ bizlato_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text="Удалить аккаунт Bizlato", callback_data=set_callback.new(service_name="bizlato",
                                                                                             action="delete_acc"))
+    ],
+    [
+        InlineKeyboardButton(text="Изменить секретный код", callback_data=set_callback.new(service_name="bizlato",
+                                                                                           action="change_code"))
     ]
 ])
 
@@ -32,3 +36,13 @@ async def bizlato_accs_keyboard(list_bizlato):
             )
         markup.insert(InlineKeyboardButton(text="Назад", callback_data="back"))
     return markup
+
+
+bizlato_accept_acc = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text="Все верно", callback_data="accept_acc")
+    ],
+    [
+        InlineKeyboardButton(text="Назад", callback_data="back")
+    ],
+])

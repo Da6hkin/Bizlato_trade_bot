@@ -44,7 +44,8 @@ class Database:
         id SERIAL PRIMARY KEY,
         user_id BIGINT NOT NULL, 
         bizlato_email VARCHAR(255) NULL UNIQUE ,
-        bizlato_api_key VARCHAR(255) NULL UNIQUE,
+        bizlato_api_key VARCHAR(510) NULL UNIQUE,
+        bizlato_code VARCHAR(255) NULL UNIQUE ,
         qiwi_wallets VARCHAR(255)[] NULL
         );
         """
@@ -70,9 +71,9 @@ class Database:
         sql = "UPDATE Accounts SET qiwi_wallets = ARRAY [$2] WHERE bizlato_api_key=$1"
         return await self.execute(sql, bizlato_api_key, qiwi_wallets, execute=True)
 
-    async def create_bizlato_acc(self, user_id, bizlato_email, bizlato_api_key):
-        sql = "INSERT INTO Accounts (user_id,bizlato_email,bizlato_api_key) VALUES ($1,$2,$3)"
-        return await self.execute(sql, user_id, bizlato_email, bizlato_api_key, execute=True)
+    async def create_bizlato_acc(self, user_id, bizlato_email, bizlato_api_key, bizlato_code):
+        sql = "INSERT INTO Accounts (user_id,bizlato_email,bizlato_api_key,bizlato_code) VALUES ($1,$2,$3,$4)"
+        return await self.execute(sql, user_id, bizlato_email, bizlato_api_key, bizlato_code, execute=True)
 
     async def add_qiwi_wallet(self, bizlato_api_key, qiwi_wallets):
         sql = "UPDATE Accounts SET qiwi_wallets = array_append(qiwi_wallets,$2) WHERE bizlato_api_key=$1"
@@ -81,6 +82,14 @@ class Database:
     async def delete_qiwi_wallet(self, bizlato_api_key, qiwi_wallets):
         sql = "UPDATE Accounts SET qiwi_wallets = array_remove(qiwi_wallets,$2) WHERE bizlato_api_key=$1"
         return await self.execute(sql, bizlato_api_key, qiwi_wallets, execute=True)
+
+    async def delete_bizlato_acc(self, bizlato_email):
+        sql = "DELETE FROM Accounts WHERE bizlato_email=$1"
+        return await self.execute(sql, bizlato_email, execute=True)
+
+    async def update_bizlato_code(self, bizlato_code, bizlato_email):
+        sql = "UPDATE Accounts SET bizlato_code = $1 WHERE bizlato_email= $2"
+        return await self.execute(sql, bizlato_code, bizlato_email, execute=True)
 
     async def show_wallets(self, bizlato_api_key):
         sql = "SELECT qiwi_wallets FROM Accounts WHERE bizlato_api_key=$1"
@@ -98,9 +107,9 @@ class Database:
         sql = "SELECT bizlato_api_key FROM Accounts WHERE bizlato_email=$1"
         return await self.execute(sql, bizlato_email, fetch=True)
 
-    async def check_bizlato_exists(self, bizlato_api_key):
+    async def check_bizlato_exists(self, bizlato_email):
         sql = "SELECT EXISTS(SELECT 1 FROM Accounts WHERE bizlato_email = $1)"
-        return await self.execute(sql, bizlato_api_key, fetchrow=True)
+        return await self.execute(sql, bizlato_email, fetchrow=True)
 
     async def check_qiwi_exists(self, qiwi_wallets):
         sql = "SELECT EXISTS(SELECT 1 FROM Accounts WHERE $1=any(qiwi_wallets))"

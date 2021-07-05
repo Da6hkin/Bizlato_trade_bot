@@ -13,7 +13,7 @@ async def on_startup(dispatcher):
     await db.create()
     logging.info("Создаем таблицу аккаунтов")
     await db.create_table_accounts()
-    await db.delete_all_accs()
+
     await set_default_commands(dispatcher)
     logging.info("Готово")
     # Уведомляет про запуск

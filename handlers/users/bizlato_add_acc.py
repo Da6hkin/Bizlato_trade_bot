@@ -19,8 +19,10 @@ from aiogram import types
 from states import AddAcc, QiwiSettings
 
 
-def check_bitzlato(email, key):
+def check_bitzlato(email, key, kid):
+    print(key)
     json_key = json.loads(key)
+    print(json_key)
     dt = datetime.datetime.now()
     ts = time.mktime(dt.timetuple())
     claims = {
@@ -35,9 +37,9 @@ def check_bitzlato(email, key):
     }
     print(claims)
     # make token with claims from secret user key
-    token = jws.sign(claims, json_key, headers={"kid": "1"}, algorithm=ALGORITHMS.ES256)
+    token = jws.sign(claims, json_key, headers={"kid": kid}, algorithm=ALGORITHMS.ES256)
 
-    resp = requests.get('https://bitzlato.com/api/p2p/public/exchange/dsa/', headers={
+    resp = requests.get('https://bitzlato.com/api/p2p/trade/', headers={
         "Authorization": "Bearer " + token
     },
                         params={})
@@ -86,6 +88,33 @@ async def input_bizlato_email(message: Union[types.Message, types.CallbackQuery]
                 "email": answer
             }
         )
+        await message.answer(text="<b>Введите параметр kid API-ключа указанный в личном кабинете:</b>",
+                             reply_markup=back_keyboard)
+        await AddAcc.InputKid.set()
+    else:
+        await AddAcc.InputEmail.set()
+
+
+@dp.callback_query_handler(state=AddAcc.InputKid)
+@dp.message_handler(state=AddAcc.InputKid)
+async def input_bizlato_kid(message: Union[types.Message, types.CallbackQuery], state=FSMContext):
+    message_type = type(message)
+    data = await state.get_data()
+    if message_type == types.CallbackQuery:
+        if message.data == "back":
+            await state.finish()
+            await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
+            await message.message.answer(text="Вы отменили добавление аккаунта", reply_markup=start_keyboard)
+        else:
+            await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
+            await AddAcc.InputKid.set()
+    elif message_type == types.Message:
+        answer = message.text
+        await state.update_data(
+            {
+                "kid": answer
+            }
+        )
         await message.answer(text="Введите ключ API Bitzlato в Формате:\n"
                                   "<code>{'kty':'EC',\n"
                                   "'alg':'ES256',\n"
@@ -96,7 +125,7 @@ async def input_bizlato_email(message: Union[types.Message, types.CallbackQuery]
                              reply_markup=back_keyboard)
         await AddAcc.InputAcc.set()
     else:
-        await AddAcc.InputEmail.set()
+        await AddAcc.InputKid.set()
 
 
 @dp.callback_query_handler(state=AddAcc.InputAcc)
@@ -112,11 +141,12 @@ async def input_bizlato_acc(message: Union[types.Message, types.CallbackQuery], 
             await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
             await AddAcc.InputEmail.set()
     elif message_type == types.Message:
-        email_data = await state.get_data()
-        email = email_data.get("email")
+        acc_data = await state.get_data()
+        email = acc_data.get("email")
+        kid = acc_data.get("kid")
         api_key = message.text
         try:
-            data = check_bitzlato(email, api_key)
+            data = check_bitzlato(email, api_key,kid)
             if data[0] == 200:
                 accs = await db.check_bizlato_exists(email)
                 if accs[0]:
@@ -174,11 +204,13 @@ async def input_bizlato_acc(message: types.CallbackQuery, state=FSMContext):
         acc_data = await state.get_data()
         email = acc_data.get("email")
         api_key = acc_data.get("api_key")
+        kid = acc_data.get("kid")
         await state.reset_data()
         await state.update_data(
             {
                 "api_key": api_key,
-                "email": email
+                "email": email,
+                "kid": kid
             }
         )
         await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
@@ -190,8 +222,9 @@ async def input_bizlato_acc(message: types.CallbackQuery, state=FSMContext):
         acc_data = await state.get_data()
         email = acc_data.get("email")
         api_key = acc_data.get("api_key")
+        kid = acc_data.get("kid")
         code = acc_data.get("code")
-        await db.create_bizlato_acc(message.from_user.id, email, api_key, code)
+        await db.create_bizlato_acc(message.from_user.id, email, api_key, kid, code)
         await bot.delete_message(chat_id=message.from_user.id, message_id=message.message.message_id)
         await message.message.answer("Аккаунт был успешно создан", reply_markup=start_keyboard)
         await state.finish()

@@ -9,9 +9,11 @@ from utils.set_bot_commands import set_default_commands
 
 
 async def on_startup(dispatcher):
+
     logging.info("Создаем подключение к базе")
     await db.create()
     logging.info("Создаем таблицу аккаунтов")
+
     await db.create_table_accounts()
 
     await set_default_commands(dispatcher)

@@ -45,6 +45,7 @@ class Database:
         user_id BIGINT NOT NULL, 
         bizlato_email VARCHAR(255) NULL UNIQUE ,
         bizlato_api_key VARCHAR(510) NULL UNIQUE,
+        bizlato_kid VARCHAR(255) NULL  UNIQUE,
         bizlato_code VARCHAR(255) NULL UNIQUE ,
         qiwi_wallets VARCHAR(255)[] NULL
         );
@@ -71,9 +72,9 @@ class Database:
         sql = "UPDATE Accounts SET qiwi_wallets = ARRAY [$2] WHERE bizlato_api_key=$1"
         return await self.execute(sql, bizlato_api_key, qiwi_wallets, execute=True)
 
-    async def create_bizlato_acc(self, user_id, bizlato_email, bizlato_api_key, bizlato_code):
-        sql = "INSERT INTO Accounts (user_id,bizlato_email,bizlato_api_key,bizlato_code) VALUES ($1,$2,$3,$4)"
-        return await self.execute(sql, user_id, bizlato_email, bizlato_api_key, bizlato_code, execute=True)
+    async def create_bizlato_acc(self, user_id, bizlato_email, bizlato_api_key, bizlato_kid, bizlato_code):
+        sql = "INSERT INTO Accounts (user_id,bizlato_email,bizlato_api_key, bizlato_kid,bizlato_code) VALUES ($1,$2,$3,$4,$5)"
+        return await self.execute(sql, user_id, bizlato_email, bizlato_api_key, bizlato_kid, bizlato_code, execute=True)
 
     async def add_qiwi_wallet(self, bizlato_api_key, qiwi_wallets):
         sql = "UPDATE Accounts SET qiwi_wallets = array_append(qiwi_wallets,$2) WHERE bizlato_api_key=$1"
